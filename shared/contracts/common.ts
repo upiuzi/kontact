@@ -139,7 +139,7 @@ export const phoneSchema = z.union([
   }),
 ]);
 
-const addressSchema = z.union([
+export const addressSchema = z.union([
   z.string(),
   z.object({
     address: z.string().trim().min(1),
@@ -148,7 +148,7 @@ const addressSchema = z.union([
   }),
 ]);
 
-const socialLinkSchema = z.union([
+export const socialLinkSchema = z.union([
   z.string(),
   z.object({
     url: z.string().url().or(z.string().trim().min(1)),
@@ -186,9 +186,17 @@ const sourceSchema = z.union([
   }),
 ]);
 
-const tagSchema = z.union([
-  z.string().trim().min(1, "Tag cannot be empty").max(100),
-  z.object({ tag: z.string().trim().min(1, "Tag cannot be empty").max(100) }),
+export const tagSchema = z.union([
+  z.preprocess(
+    (val) => (typeof val === "string" ? val.trim().slice(0, 100) : val),
+    z.string().trim().min(1, "Tag cannot be empty").max(100),
+  ),
+  z.object({
+    tag: z.preprocess(
+      (val) => (typeof val === "string" ? val.trim().slice(0, 100) : val),
+      z.string().trim().min(1, "Tag cannot be empty").max(100),
+    ),
+  }),
 ]);
 
 const interestSchema = z.union([

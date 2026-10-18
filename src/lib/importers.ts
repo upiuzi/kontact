@@ -63,11 +63,21 @@ export const parseVCard = (
 ): ImportedContact[] => {
   const { contacts, totalCards } = extractVCardContacts(vcardData);
   if (tally) tally.skipped += totalCards - contacts.length;
-  return contacts.map(({ uid: _uid, ...c }) => ({
-    ...c,
-    sources: [{ platform: sourcePlatform }],
-    _sourcePlatform: sourcePlatform,
-  }));
+  return contacts
+    .map(({ uid: _uid, ...c }) => ({
+      ...c,
+      name: (c.name || "").trim().slice(0, 300),
+      company: c.company ? c.company.trim().slice(0, 200) : null,
+      role: c.role ? c.role.trim().slice(0, 200) : null,
+      tags: c.tags
+        ? c.tags
+            .map((t: string) => (typeof t === "string" ? t.trim().slice(0, 100) : t))
+            .filter(Boolean)
+        : undefined,
+      sources: [{ platform: sourcePlatform }],
+      _sourcePlatform: sourcePlatform,
+    }))
+    .filter((c) => Boolean(c.name));
 };
 
 // CSV helpers
@@ -138,7 +148,7 @@ export const parseLinkedInCSV = async (
     (row) => {
       const firstName = cell(row, "First Name");
       const lastName = cell(row, "Last Name");
-      const name = `${firstName} ${lastName}`.trim();
+      const name = `${firstName} ${lastName}`.trim().slice(0, 300);
       if (!name) return null;
 
       const email = cell(row, "Email Address");
@@ -147,8 +157,8 @@ export const parseLinkedInCSV = async (
         name,
         firstName: firstName || null,
         lastName: lastName || null,
-        company: cell(row, "Company") || null,
-        role: cell(row, "Position") || null,
+        company: cell(row, "Company").trim().slice(0, 200) || null,
+        role: cell(row, "Position").trim().slice(0, 200) || null,
         emails: email ? [{ email, label: "work", isPrimary: true }] : [],
         socialLinks: profileUrl
           ? [{ platform: "linkedin", url: profileUrl }]
@@ -224,6 +234,8 @@ export const parseFacebookJSON = (
       } catch {
         /* keep the name as it is */
       }
+      name = (name || "").trim().slice(0, 300);
+      if (!name) return null;
       return {
         name,
         sources: [
@@ -314,7 +326,7 @@ function googleAddresses(row: CsvRow): ImportedAddress[] {
         .join(", ");
     if (!address) continue;
     addresses.push({
-      address,
+      address: address.trim().slice(0, 300),
       label: googleLabel(
         cell(row, `Address ${i} - Label`, `Address ${i} - Type`),
         "home",
@@ -335,8 +347,8 @@ export const parseGoogleCSV = async (
     (row) => {
       const firstName = cell(row, "First Name", "Given Name");
       const lastName = cell(row, "Last Name", "Family Name");
-      const company = cell(row, "Organization Name", "Organization 1 - Name");
-      const name =
+      const company = cell(row, "Organization Name", "Organization 1 - Name").trim().slice(0, 200);
+      let name =
         cell(row, "Name") ||
         [firstName, cell(row, "Middle Name", "Additional Name"), lastName]
           .filter(Boolean)
@@ -344,6 +356,7 @@ export const parseGoogleCSV = async (
         cell(row, "File As", "Nickname") ||
         company;
       if (!name) return null;
+      name = name.trim().slice(0, 300);
 
       const emails: ImportedEmail[] = googleEntries(
         row,
@@ -365,17 +378,18 @@ export const parseGoogleCSV = async (
       }));
       const addresses = googleAddresses(row);
       // Google's own groups ("* myContacts", "* starred") are not tags.
-      const tags = googleValues(cell(row, "Labels", "Group Membership")).filter(
-        (label) => !label.startsWith("*"),
-      );
+      const tags = googleValues(cell(row, "Labels", "Group Membership"))
+        .filter((label) => !label.startsWith("*"))
+        .map((label) => label.trim().slice(0, 100))
+        .filter(Boolean);
 
       return {
         name,
         firstName: firstName || null,
         lastName: lastName || null,
         company: company || null,
-        role: cell(row, "Organization Title", "Organization 1 - Title") || null,
-        location: addresses[0]?.address ?? null,
+        role: cell(row, "Organization Title", "Organization 1 - Title").trim().slice(0, 200) || null,
+        location: addresses[0]?.address ? addresses[0].address.slice(0, 300) : null,
         birthday: cell(row, "Birthday") || null,
         about: cell(row, "Notes") || null,
         website: googleEntries(row, ["Website"], "website")[0]?.value ?? null,
@@ -432,6 +446,7 @@ export const parseGenericCSV = async (
         name = company;
       }
       if (!name) return null;
+      name = name.trim().slice(0, 300);
 
       const email = cell(
         row,
@@ -508,19 +523,21 @@ export const parseGenericCSV = async (
       if (booth) notesParts.push(`Booth/Hall: ${booth}`);
 
       const tags: string[] = [];
-      if (category) tags.push(category);
-      if (brand) tags.push(brand);
+      if (category) tags.push(category.trim().slice(0, 100));
+      if (brand) tags.push(brand.trim().slice(0, 100));
 
       return {
         name,
-        company: company || null,
-        role: role || null,
-        location: address || null,
+        company: company ? company.trim().slice(0, 200) : null,
+        role: role ? role.trim().slice(0, 200) : null,
+        location: address ? address.trim().slice(0, 300) : null,
         about: notesParts.length > 0 ? notesParts.join("\n") : null,
         website: website || null,
         emails: email ? [{ email, label: "work", isPrimary: true }] : [],
         phones: phone ? [{ phone, label: "work", isPrimary: true }] : [],
-        addresses: address ? [{ address, label: "work", isPrimary: true }] : [],
+        addresses: address
+          ? [{ address: address.trim().slice(0, 300), label: "work", isPrimary: true }]
+          : [],
         tags: tags.length > 0 ? tags : undefined,
         sources: [{ platform: sourceName }],
         _sourcePlatform: sourceName,

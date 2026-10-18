@@ -10,6 +10,7 @@ import { researchDepthSchema } from "../researchDepth.ts";
 import { MAX_CADENCE_DAYS } from "../cadence.ts";
 import { route } from "./route.ts";
 import {
+  addressSchema,
   childRecordsSchema,
   dateSchema,
   emailSchema,
@@ -17,7 +18,9 @@ import {
   INTERNAL,
   phoneSchema,
   queryText,
+  socialLinkSchema,
   stringToBool,
+  tagSchema,
 } from "./common.ts";
 
 // Request bodies
@@ -25,7 +28,10 @@ import {
 /** Payload for POST /contacts (Contact creation) */
 export const contactCreateSchema = z
   .object({
-    name: z.string().trim().min(1, "Name is required").max(300),
+    name: z.preprocess(
+      (val) => (typeof val === "string" ? val.trim().slice(0, 300) : val),
+      z.string().trim().min(1, "Name is required").max(300),
+    ),
     firstName: z.string().nullable().optional(),
     lastName: z.string().nullable().optional(),
     headline: z.string().nullable().optional(),
@@ -102,8 +108,15 @@ const readable = (item: z.ZodType) =>
 const contactBulkCreateSchema = z
   .array(
     contactCreateSchema.extend({
+      name: z.preprocess(
+        (val) => (typeof val === "string" ? val.trim().slice(0, 300) : val),
+        z.string().trim().min(1, "Name is required").max(300),
+      ),
       emails: readable(emailSchema),
       phones: readable(phoneSchema),
+      tags: readable(tagSchema),
+      addresses: readable(addressSchema),
+      socialLinks: readable(socialLinkSchema),
     }),
   )
   .max(5000);
