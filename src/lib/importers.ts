@@ -401,16 +401,117 @@ export const parseGenericCSV = async (
   return collect(
     rows,
     (row) => {
-      const name = cell(row, "Name", "name", "Full Name");
-      if (!name || name === "Unknown") return null;
-      const email = cell(row, "Email", "email", "Email Address");
-      const phone = cell(row, "Phone", "phone", "Phone Number");
+      let name = cell(
+        row,
+        "Contact_Person",
+        "Contact Person",
+        "ContactPerson",
+        "Contact",
+        "Name",
+        "name",
+        "Full Name",
+        "Full_Name",
+        "Nama",
+        "Nama Lengkap",
+        "Nama_Lengkap",
+        "Person",
+      );
+      const company = cell(
+        row,
+        "Company",
+        "company",
+        "Company Name",
+        "Company_Name",
+        "Perusahaan",
+        "Nama Perusahaan",
+        "Organization",
+        "Organization Name",
+        "Organization 1 - Name",
+      );
+      if (!name || name.toLowerCase() === "unknown" || name === "-" || name.toLowerCase() === "n/a") {
+        name = company;
+      }
+      if (!name) return null;
+
+      const email = cell(
+        row,
+        "Email",
+        "email",
+        "Email Address",
+        "Email_Address",
+        "E-mail",
+        "Surel",
+      );
+      const phone = cell(
+        row,
+        "Phone",
+        "phone",
+        "Phone Number",
+        "Phone_Number",
+        "Telephone",
+        "Telepon",
+        "No Telp",
+        "No_Telp",
+        "Mobile",
+        "Hp",
+        "WhatsApp",
+        "WA",
+      );
+      const address = cell(
+        row,
+        "Address",
+        "address",
+        "Alamat",
+        "Street",
+        "Location",
+        "Lokasi",
+      );
+      const website = cell(
+        row,
+        "Website",
+        "website",
+        "Web",
+        "URL",
+        "Url",
+        "Site",
+      );
+      const role = cell(
+        row,
+        "Role",
+        "role",
+        "Title",
+        "title",
+        "Position",
+        "position",
+        "Jabatan",
+        "Pekerjaan",
+      );
+
+      const notesParts: string[] = [];
+      const product = cell(row, "Product", "product", "Produk");
+      if (product) notesParts.push(`Product: ${product}`);
+      const brand = cell(row, "Brand", "brand", "Merek");
+      if (brand) notesParts.push(`Brand: ${brand}`);
+      const category = cell(row, "Category", "category", "Kategori");
+      if (category) notesParts.push(`Category: ${category}`);
+      const booth = cell(row, "Booth", "booth", "Hall", "hall");
+      if (booth) notesParts.push(`Booth/Hall: ${booth}`);
+
+      const tags: string[] = [];
+      if (category) tags.push(category);
+      if (brand) tags.push(brand);
+
       return {
         name,
-        company: cell(row, "Company", "company") || null,
-        role: cell(row, "Role", "Title", "Position") || null,
-        emails: email ? [{ email, label: "personal", isPrimary: true }] : [],
-        phones: phone ? [{ phone, label: "mobile", isPrimary: true }] : [],
+        company: company || null,
+        role: role || null,
+        location: address || null,
+        about: notesParts.length > 0 ? notesParts.join("\n") : null,
+        website: website || null,
+        emails: email ? [{ email, label: "work", isPrimary: true }] : [],
+        phones: phone ? [{ phone, label: "work", isPrimary: true }] : [],
+        addresses: address ? [{ address, label: "work", isPrimary: true }] : [],
+        tags: tags.length > 0 ? tags : undefined,
         sources: [{ platform: sourceName }],
         _sourcePlatform: sourceName,
       };
@@ -457,12 +558,21 @@ export async function parseImportFile(
   if (extension === "vcf") {
     contacts = parseVCard(text, "apple", tally);
   } else if (extension === "csv") {
-    contacts =
-      source === "linkedin"
-        ? await parseLinkedInCSV(text, tally)
-        : source === "google"
-          ? await parseGoogleCSV(text, tally)
-          : await parseGenericCSV(text, source, tally);
+    if (source === "linkedin") {
+      contacts = await parseLinkedInCSV(text, tally);
+      if (contacts.length === 0) {
+        tally.skipped = 0;
+        contacts = await parseGenericCSV(text, source, tally);
+      }
+    } else if (source === "google") {
+      contacts = await parseGoogleCSV(text, tally);
+      if (contacts.length === 0) {
+        tally.skipped = 0;
+        contacts = await parseGenericCSV(text, source, tally);
+      }
+    } else {
+      contacts = await parseGenericCSV(text, source, tally);
+    }
   } else if (extension === "json" && source === "facebook") {
     contacts = parseFacebookJSON(text, tally);
   } else if (extension === "json") {

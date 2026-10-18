@@ -530,8 +530,8 @@ export const ImportPanel = ({ onComplete, onClose }: ImportPanelProps) => {
   };
 
   const progressPct =
-    progress?.processed && progress?.total
-      ? Math.round((progress.processed / Math.max(progress.total, 1)) * 100)
+    progress?.processed !== undefined && progress?.total
+      ? Math.min(100, Math.round((progress.processed / Math.max(progress.total, 1)) * 100))
       : 0;
 
   const getPhaseLabel = (): string => {
@@ -539,7 +539,7 @@ export const ImportPanel = ({ onComplete, onClose }: ImportPanelProps) => {
       case "importing":
         return progress?.message || "Importing contacts…";
       case "embedding":
-        return "Preparing the contacts for search…";
+        return progress?.message || "Preparing the contacts for search…";
       case "scanning":
         return progress?.message || "Looking for duplicates…";
       default:
@@ -833,12 +833,18 @@ export const ImportPanel = ({ onComplete, onClose }: ImportPanelProps) => {
                 {getPhaseLabel()}
               </p>
 
-              {phase === "importing" && progress?.total ? (
+              {isProcessing && progress?.total ? (
                 <div className="w-full max-w-xs space-y-2 mt-3">
                   <div className="flex justify-between text-xs font-bold">
-                    <span className="text-on-surface-variant">Importing</span>
-                    <span className="text-primary tabular-nums">
-                      {progress.processed ?? 0}/{progress.total}
+                    <span className="text-on-surface-variant capitalize">
+                      {phase === "importing"
+                        ? "Importing"
+                        : phase === "embedding"
+                          ? "Fingerprinting"
+                          : "Scanning"}
+                    </span>
+                    <span className="text-primary tabular-nums font-semibold">
+                      {progressPct}% ({progress.processed ?? 0}/{progress.total})
                     </span>
                   </div>
                   <div
@@ -847,7 +853,7 @@ export const ImportPanel = ({ onComplete, onClose }: ImportPanelProps) => {
                     aria-valuemin={0}
                     aria-valuemax={progress.total}
                     aria-valuenow={progress.processed ?? 0}
-                    className="h-1.5 bg-surface-container-high rounded-full overflow-hidden"
+                    className="h-2 bg-surface-container-high rounded-full overflow-hidden"
                   >
                     <motion.div
                       className="h-full bg-primary rounded-full"
@@ -855,23 +861,24 @@ export const ImportPanel = ({ onComplete, onClose }: ImportPanelProps) => {
                       transition={{ duration: DURATION.slow, ease: EASE }}
                     />
                   </div>
+                  {phase === "scanning" && progress?.autoMerged !== undefined && (
+                    <p className="text-xs text-on-surface-variant mt-2">
+                      {progress.autoMerged > 0 && (
+                        <span className="text-success font-bold">
+                          {progress.autoMerged} merged
+                        </span>
+                      )}
+                      {progress.autoMerged > 0 &&
+                        progress.needsReview! > 0 &&
+                        " · "}
+                      {progress.needsReview! > 0 && (
+                        <span className="text-warning font-bold">
+                          {progress.needsReview} to review
+                        </span>
+                      )}
+                    </p>
+                  )}
                 </div>
-              ) : phase === "scanning" && progress?.autoMerged !== undefined ? (
-                <p className="text-xs text-on-surface-variant mt-2">
-                  {progress.autoMerged > 0 && (
-                    <span className="text-success font-bold">
-                      {progress.autoMerged} merged
-                    </span>
-                  )}
-                  {progress.autoMerged > 0 &&
-                    progress.needsReview! > 0 &&
-                    " · "}
-                  {progress.needsReview! > 0 && (
-                    <span className="text-warning font-bold">
-                      {progress.needsReview} to review
-                    </span>
-                  )}
-                </p>
               ) : (
                 <p className="text-xs text-on-surface-variant mt-1">
                   This may take a moment
@@ -897,14 +904,36 @@ export const ImportPanel = ({ onComplete, onClose }: ImportPanelProps) => {
                   ? `Checking on ${fileName} with the server…`
                   : "Checking with the server…"}
               </p>
-              {progress?.message && (
-                <p className="text-xs text-on-surface-variant mt-2">
+              {progress?.total ? (
+                <div className="w-full max-w-xs space-y-2 mt-3 text-left">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-on-surface-variant capitalize">
+                      {progress.phase || "Progress"}
+                    </span>
+                    <span className="text-primary tabular-nums font-semibold">
+                      {progressPct}% ({progress.processed ?? 0}/{progress.total})
+                    </span>
+                  </div>
+                  <div
+                    role="progressbar"
+                    aria-label="Import progress"
+                    aria-valuemin={0}
+                    aria-valuemax={progress.total}
+                    aria-valuenow={progress.processed ?? 0}
+                    className="h-2 bg-surface-container-high rounded-full overflow-hidden"
+                  >
+                    <motion.div
+                      className="h-full bg-primary rounded-full"
+                      animate={{ width: `${progressPct}%` }}
+                      transition={{ duration: DURATION.slow, ease: EASE }}
+                    />
+                  </div>
+                </div>
+              ) : progress?.message ? (
+                <p className="text-xs text-on-surface-variant mt-2 font-mono">
                   {progress.message}
-                  {progress.total
-                    ? ` (${progress.processed ?? 0}/${progress.total})`
-                    : ""}
                 </p>
-              )}
+              ) : null}
             </motion.div>
           ) : phase === "failed" ? (
             <motion.div key="failed" {...PHASE_MOTION} className="space-y-5">

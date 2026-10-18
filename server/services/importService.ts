@@ -593,10 +593,24 @@ export const importService = {
         if (isEmbeddingAvailable()) {
           const message = "Generating contact fingerprints…";
           _stmts.phase.run("embedding", message, id, scope.ownerId);
-          send?.({ phase: "embedding", message });
+          send?.({
+            phase: "embedding",
+            processed: 0,
+            total: createdIds.length,
+            message,
+          });
         }
         try {
-          await generateAndStoreBulkEmbeddings(createdIds);
+          await generateAndStoreBulkEmbeddings(createdIds, (done, total) => {
+            const message = `Generating contact fingerprints (${done}/${total})…`;
+            _stmts.phase.run("embedding", message, id, scope.ownerId);
+            send?.({
+              phase: "embedding",
+              processed: done,
+              total,
+              message,
+            });
+          });
           log.info(
             "Imports",
             `[${rid}] Bulk embeddings generated for ${createdIds.length} contacts`,
@@ -613,7 +627,12 @@ export const importService = {
       if (createdIds.length > 0 && prefs.dedupeOnImport) {
         const message = "Looking for duplicates…";
         _stmts.phase.run("scanning", message, id, scope.ownerId);
-        send?.({ phase: "scanning", message });
+        send?.({
+          phase: "scanning",
+          processed: 0,
+          total: createdIds.length,
+          message,
+        });
         // A resumed check may be running over pairs a dead one already
         // wrote. Pending rows are cleared and found again; merged ones stand.
         _stmts.clearPending.run(scope.ownerId, id, id);
@@ -629,6 +648,8 @@ export const importService = {
               needsReview = counts.needsReview;
               send?.({
                 phase: "scanning",
+                processed: checked,
+                total,
                 message: progress,
                 autoMerged,
                 needsReview,

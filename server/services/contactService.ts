@@ -569,8 +569,8 @@ export const contactService = {
       if (isBase64DataUri(c.avatarUrl)) {
         const fileUrl = await processBase64Avatar(scope, c.avatarUrl);
         c.avatarUrl = fileUrl; // null if processing failed; smart avatar fallback below
+        onProgress?.(i + 1, total, "Processing images");
       }
-      onProgress?.(i + 1, total, "Processing images");
     }
 
     // Write the contacts. The events of every committed transaction are
@@ -640,6 +640,7 @@ export const contactService = {
 
       if (!importId) {
         txn(0, total);
+        onProgress?.(total, total, "Importing contacts…");
       } else {
         if (!rowIndexes) {
           importService.recordPending(
@@ -655,6 +656,7 @@ export const contactService = {
           const end = Math.min(start + IMPORT_BATCH_ROWS, total);
           txn(start, end);
           start = end;
+          onProgress?.(start, total, "Importing contacts…");
         } while (start < total);
       }
       if (createdIds.length > 0) {

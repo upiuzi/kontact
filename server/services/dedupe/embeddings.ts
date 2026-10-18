@@ -153,6 +153,7 @@ function l2Normalize(values: number[]): Float32Array {
 export async function generateBatchEmbeddings(
   items: { id: string; text: string }[],
   embedder = currentEmbedder(),
+  onProgress?: (done: number, total: number) => void,
 ): Promise<Map<string, Float32Array>> {
   const results = new Map<string, Float32Array>();
 
@@ -176,6 +177,7 @@ export async function generateBatchEmbeddings(
         `Failed to embed batch starting at index ${i}: ${getErrorMessage(err)}`,
       );
     }
+    onProgress?.(Math.min(i + batch.length, items.length), items.length);
   }
 
   return results;
@@ -743,6 +745,7 @@ export async function generateAndStoreEmbedding(
  */
 export async function generateAndStoreBulkEmbeddings(
   contactIds: string[],
+  onProgress?: (done: number, total: number) => void,
 ): Promise<number> {
   const allowed = currentEmbedder();
   if (!allowed.ready() || contactIds.length === 0) return 0;
@@ -767,7 +770,7 @@ export async function generateAndStoreBulkEmbeddings(
       [...owners].every((owner) => mayEmbedContactsFor(owner, allowed)),
     );
 
-    const embeddings = await generateBatchEmbeddings(items, embedder);
+    const embeddings = await generateBatchEmbeddings(items, embedder, onProgress);
     if (replaced(embedder)) return 0;
     const entries: { contactId: string; embedding: Float32Array }[] = [];
     for (const [id, emb] of embeddings) {
