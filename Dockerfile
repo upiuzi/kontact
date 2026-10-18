@@ -131,7 +131,9 @@ ENV NODE_ENV=production \
     DATA_DIR=/app/data \
     PORT=3210 \
     HOST=0.0.0.0 \
-    AUTH_REQUIRED=false \
+    AUTH_REQUIRED=true \
+    TRUST_PROXY_HOPS=1 \
+    ALLOWED_HOSTS=* \
     MODEL_DIR=/app/models \
     MODEL_DOWNLOADS=false
 
