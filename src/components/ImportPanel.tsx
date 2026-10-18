@@ -119,6 +119,21 @@ function persistSource(source: ImportTab) {
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+function createUuid(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    try {
+      return crypto.randomUUID();
+    } catch {
+      // fallback for insecure contexts
+    }
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export const ImportPanel = ({ onComplete, onClose }: ImportPanelProps) => {
   const { user } = useAuth();
   const accountId = user?.id ?? null;
@@ -384,21 +399,21 @@ export const ImportPanel = ({ onComplete, onClose }: ImportPanelProps) => {
       );
       newContacts = parsed.contacts;
       setSkipped(parsed.skipped);
+
+      const id = createUuid();
+      pendingRef.current = { id, contacts: newContacts };
+      setImportId(id);
+      setFileName(file.name);
+      rememberImport(accountId, { importId: id, fileName: file.name });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      await runImport(id, newContacts);
     } catch (err: unknown) {
-      setError(errorText(err) || "Could not read the file");
+      setError(errorText(err) || "Could not read or process the file");
       setPhase("idle");
       setProgress(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
-
-    const id = crypto.randomUUID();
-    pendingRef.current = { id, contacts: newContacts };
-    setImportId(id);
-    setFileName(file.name);
-    rememberImport(accountId, { importId: id, fileName: file.name });
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    await runImport(id, newContacts);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

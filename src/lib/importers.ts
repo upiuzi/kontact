@@ -440,6 +440,8 @@ export const parseGenericCSV = async (
         "Email Address",
         "Email_Address",
         "E-mail",
+        "E-mail 1 - Value",
+        "Email 1 - Value",
         "Surel",
       );
       const phone = cell(
@@ -448,6 +450,7 @@ export const parseGenericCSV = async (
         "phone",
         "Phone Number",
         "Phone_Number",
+        "Phone 1 - Value",
         "Telephone",
         "Telepon",
         "No Telp",
@@ -461,6 +464,8 @@ export const parseGenericCSV = async (
         row,
         "Address",
         "address",
+        "Address 1 - Formatted",
+        "Address 1 - Street",
         "Alamat",
         "Street",
         "Location",
@@ -470,6 +475,7 @@ export const parseGenericCSV = async (
         row,
         "Website",
         "website",
+        "Website 1 - Value",
         "Web",
         "URL",
         "Url",
@@ -483,11 +489,15 @@ export const parseGenericCSV = async (
         "title",
         "Position",
         "position",
+        "Organization 1 - Title",
+        "Organization Title",
         "Jabatan",
         "Pekerjaan",
       );
 
       const notesParts: string[] = [];
+      const notes = cell(row, "Notes", "notes", "Catatan", "About", "about");
+      if (notes) notesParts.push(notes);
       const product = cell(row, "Product", "product", "Produk");
       if (product) notesParts.push(`Product: ${product}`);
       const brand = cell(row, "Brand", "brand", "Merek");
