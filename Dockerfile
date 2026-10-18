@@ -28,7 +28,8 @@ RUN node scripts/fetch-models.ts /app/models
 # better-sqlite3 13+ and onnxruntime-node already ship prebuilt Linux binaries
 # inside their tarballs, and node:26-trixie-slim has no Python for node-gyp.
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts && rm -rf /root/.npm
+ENV NODE_ENV=development
+RUN npm ci --include=dev --ignore-scripts && rm -rf /root/.npm
 
 # Copy frontend build inputs and build
 COPY index.html vite.config.ts tsconfig.json ./
