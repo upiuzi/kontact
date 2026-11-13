@@ -62,6 +62,8 @@ import { AISearchProvider } from "./contexts/AISearchContext";
 import { DedupeProvider } from "./contexts/DedupeContext";
 import { SessionProvider, useRecent } from "./contexts/SessionContext";
 import { useSoftKeyboard } from "./hooks/useSoftKeyboard";
+import { OutreachView } from "./views/outreach/OutreachView";
+import { CampaignDetailView } from "./views/outreach/CampaignDetailView";
 
 /** A control that keeps the focus a click gives it. */
 const CONTROL =
@@ -165,6 +167,7 @@ const ResponsiveLayout = () => {
   useWarmSettingsFromApp();
   const isSearch = location.pathname.startsWith("/search");
   const isPulse = location.pathname.startsWith("/pulse");
+  const isCampaigns = location.pathname.startsWith("/campaigns");
 
   // Clears the pressed-page mark in the sidebar and tab bar once the page
   // is on screen (`lib/pendingNav`).
@@ -177,8 +180,8 @@ const ResponsiveLayout = () => {
    */
   const isWide = useMediaQuery(WIDE_QUERY);
 
-  // Full-page views (cleanup, search, pulse) take the full main area
-  const isFullPage = isCleanup || isSearch || isPulse;
+  // Full-page views (cleanup, search, pulse, campaigns) take the full main area
+  const isFullPage = isCleanup || isSearch || isPulse || isCampaigns;
   /**
    * An address that names no page. The pane says "Page not found", and on a
    * phone it shows in place of the list, as a contact does.
@@ -190,7 +193,9 @@ const ResponsiveLayout = () => {
     ? NAMES.settings.label
     : isSearch
       ? NAMES.ask.label
-      : NAMES.pulse.label;
+      : isPulse
+        ? NAMES.pulse.label
+        : NAMES.campaigns.label;
   const fullPage = isFullPage && (
     <main
       id={MAIN_CONTENT_ID}
@@ -221,6 +226,22 @@ const ResponsiveLayout = () => {
             element={
               <RouteErrorBoundary viewName="Dashboard">
                 <PulseView />
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="/campaigns"
+            element={
+              <RouteErrorBoundary viewName="Campaigns">
+                <OutreachView />
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="/campaigns/:id"
+            element={
+              <RouteErrorBoundary viewName="CampaignDetail">
+                <CampaignDetailView />
               </RouteErrorBoundary>
             }
           />

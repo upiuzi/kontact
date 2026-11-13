@@ -40,6 +40,9 @@ export const OWNED_TABLES = [
   "search_passages",
   "search_passage_state",
   "events",
+  "sender_profiles",
+  "outreach_campaigns",
+  "outreach_recipients",
 ];
 
 /** Virtual tables partitioned by owner. FTS uses a token, not a column. */

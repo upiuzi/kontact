@@ -13,6 +13,7 @@ import {
   Map,
   Settings as SettingsIcon,
   Sparkles,
+  Mail,
 } from "lucide-react";
 import { useUrgentActionItemCount } from "../../api";
 import { useRecent } from "../../contexts/SessionContext";
@@ -38,7 +39,8 @@ export const MobileNav = () => {
   const isSettings = path.startsWith("/settings");
   const isSearch = path.startsWith("/search");
   const isPulse = path.startsWith("/pulse");
-  const isNetwork = !isMap && !isPulse && !isSettings && !isSearch;
+  const isCampaigns = path.startsWith("/campaigns");
+  const isNetwork = !isMap && !isPulse && !isSettings && !isSearch && !isCampaigns;
 
   return (
     <nav
@@ -86,6 +88,13 @@ export const MobileNav = () => {
           icon: Sparkles,
           label: NAMES.ask.label,
           active: isSearch,
+          badge: 0,
+        },
+        {
+          to: "/campaigns",
+          icon: Mail,
+          label: NAMES.campaigns.label,
+          active: isCampaigns,
           badge: 0,
         },
         {

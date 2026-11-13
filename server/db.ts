@@ -154,6 +154,10 @@ export const OWNED_TABLES = [
   "map_views",
   // 0002_events_and_jobs
   "events",
+  // 0002_sender_profiles_and_campaigns
+  "sender_profiles",
+  "outreach_campaigns",
+  "outreach_recipients",
 ] as const;
 
 /**

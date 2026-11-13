@@ -35,6 +35,11 @@ export const NAMES = {
     title: "Ask Contrack",
     description: "Ask a question about your network in plain words",
   },
+  campaigns: {
+    label: "Campaigns",
+    title: "Email Campaigns & AI Outreach",
+    description: "Send personalized AI emails using multiple SMTP accounts",
+  },
   settings: {
     label: "Settings",
     title: "Settings",

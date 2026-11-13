@@ -29,6 +29,7 @@ import { aiModule } from "./ai/index.ts";
 import { logosModule } from "./logos/index.ts";
 import { mapModule } from "./map/index.ts";
 import { oauthModule } from "./oauth/index.ts";
+import { outreachModule } from "./outreach/index.ts";
 
 export const MODULES: readonly ContrackModule[] = [
   adminModule,
@@ -51,6 +52,7 @@ export const MODULES: readonly ContrackModule[] = [
   logosModule,
   mapModule,
   oauthModule,
+  outreachModule,
 ];
 
 /** Mount every module's routers on the app, in list order. */

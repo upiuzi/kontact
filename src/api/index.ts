@@ -9,3 +9,4 @@ export * from "./dashboard";
 export * from "./suggestions";
 export * from "./aiStats";
 export * from "./jobs";
+export * from "./outreach";

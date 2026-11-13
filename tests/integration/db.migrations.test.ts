@@ -86,6 +86,17 @@ const ADDED_SINCE_FIXTURE = [
   "fts_education_ai",
   "fts_education_ad",
   "fts_education_au",
+  // 0002_sender_profiles_and_campaigns
+  "sender_profiles",
+  "idx_sender_profiles_owner",
+  "sender_profiles_owner_required",
+  "outreach_campaigns",
+  "idx_outreach_campaigns_owner",
+  "outreach_campaigns_owner_required",
+  "outreach_recipients",
+  "idx_outreach_recipients_owner",
+  "idx_outreach_recipients_campaign",
+  "outreach_recipients_owner_required",
 ];
 
 interface MasterRow {

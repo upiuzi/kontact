@@ -1292,3 +1292,122 @@ export const jobs = sqliteTable(
   },
   (table) => [index("idx_jobs_due").on(table.status, table.runAt)],
 );
+
+/**
+ * sender_profiles — multi-brand SMTP settings and AI knowledge personas
+ */
+export const senderProfiles = sqliteTable(
+  "sender_profiles",
+  {
+    id: text("id").primaryKey(),
+    ownerId: text("ownerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    name: text("name").notNull(),
+    fromName: text("fromName").notNull(),
+    fromEmail: text("fromEmail").notNull(),
+    replyTo: text("replyTo"),
+    smtpHost: text("smtpHost").notNull(),
+    smtpPort: integer("smtpPort").notNull().default(465),
+    smtpSecure: integer("smtpSecure").notNull().default(1),
+    smtpUser: text("smtpUser").notNull(),
+    smtpPasswordSealed: text("smtpPasswordSealed").notNull(),
+    imapHost: text("imapHost"),
+    imapPort: integer("imapPort").default(993),
+    imapSecure: integer("imapSecure").default(1),
+    dailyLimit: integer("dailyLimit").notNull().default(100),
+    sentToday: integer("sentToday").notNull().default(0),
+    lastSentDate: text("lastSentDate"),
+    aiKnowledge: text("aiKnowledge"),
+    aiTone: text("aiTone"),
+    aiExamples: text("aiExamples"),
+    aiGuardrails: text("aiGuardrails"),
+    aiModel: text("aiModel"),
+    createdAt: text("createdAt")
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+    updatedAt: text("updatedAt")
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => [index("idx_sender_profiles_owner").on(table.ownerId)],
+);
+
+/**
+ * outreach_campaigns — cold outreach projects with targeted contacts & prompt goals
+ */
+export const outreachCampaigns = sqliteTable(
+  "outreach_campaigns",
+  {
+    id: text("id").primaryKey(),
+    ownerId: text("ownerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    senderId: text("senderId")
+      .notNull()
+      .references(() => senderProfiles.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    targetTag: text("targetTag"),
+    targetListId: text("targetListId").references(() => lists.id, {
+      onDelete: "set null",
+    }),
+    pitchGoal: text("pitchGoal").notNull(),
+    status: text("status").notNull().default("draft"),
+    delaySeconds: integer("delaySeconds").notNull().default(20),
+    totalRecipients: integer("totalRecipients").notNull().default(0),
+    sentCount: integer("sentCount").notNull().default(0),
+    failedCount: integer("failedCount").notNull().default(0),
+    createdAt: text("createdAt")
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+    updatedAt: text("updatedAt")
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => [index("idx_outreach_campaigns_owner").on(table.ownerId)],
+);
+
+/**
+ * outreach_recipients — individual contacts queued, drafted, and sent within a campaign
+ */
+export const outreachRecipients = sqliteTable(
+  "outreach_recipients",
+  {
+    id: text("id").primaryKey(),
+    ownerId: text("ownerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    campaignId: text("campaignId")
+      .notNull()
+      .references(() => outreachCampaigns.id, { onDelete: "cascade" }),
+    contactId: text("contactId")
+      .notNull()
+      .references(() => contacts.id, { onDelete: "cascade" }),
+    toEmail: text("toEmail").notNull(),
+    toName: text("toName"),
+    company: text("company"),
+    category: text("category"),
+    subject: text("subject"),
+    bodyText: text("bodyText"),
+    bodyHtml: text("bodyHtml"),
+    status: text("status").notNull().default("pending_draft"),
+    errorMessage: text("errorMessage"),
+    sentAt: text("sentAt"),
+    repliedAt: text("repliedAt"),
+    replyText: text("replyText"),
+    aiDraftReply: text("aiDraftReply"),
+    createdAt: text("createdAt")
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+    updatedAt: text("updatedAt")
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => [
+    index("idx_outreach_recipients_owner").on(table.ownerId),
+    index("idx_outreach_recipients_campaign").on(
+      table.campaignId,
+      table.status,
+    ),
+  ],
+);

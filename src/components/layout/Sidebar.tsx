@@ -10,6 +10,7 @@ import {
   Settings as SettingsIcon,
   Sparkles,
   Activity,
+  Mail,
   Keyboard,
   Command,
 } from "lucide-react";
@@ -87,11 +88,13 @@ export const Sidebar = () => {
   const isCleanup = path.startsWith("/settings");
   const isSearch = path.startsWith("/search");
   const isPulse = path.startsWith("/pulse");
+  const isCampaigns = path.startsWith("/campaigns");
   const isHome =
     !isMap &&
     !isCleanup &&
     !isSearch &&
     !isPulse &&
+    !isCampaigns &&
     (path === "/" || path.startsWith("/contact/"));
 
   // Pointing at, focusing or pressing a link starts its page's code, and
@@ -212,6 +215,20 @@ export const Sidebar = () => {
           aria-label={NAMES.ask.label}
         >
           <Sparkles className="w-6 h-6" />
+        </Link>
+      </RailTooltip>
+
+      <RailTooltip
+        label={NAMES.campaigns.label}
+        shortcut={NAV_SHORTCUTS["/campaigns"].keys}
+      >
+        <Link
+          to="/campaigns"
+          onClick={markPendingNavOnClick("/campaigns")}
+          className={navLink(isCampaigns)}
+          aria-label={NAMES.campaigns.label}
+        >
+          <Mail className="w-6 h-6" />
         </Link>
       </RailTooltip>
 

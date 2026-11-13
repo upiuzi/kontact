@@ -24,6 +24,7 @@ export const NAV_SHORTCUTS: Record<string, { keys: string }> = {
   "/pulse": { keys: navLabel("P") },
   "/map": { keys: navLabel("M") },
   "/search": { keys: navLabel("S") },
+  "/campaigns": { keys: navLabel("C") },
   "/settings": { keys: navLabel(",") },
 };
 
@@ -33,6 +34,7 @@ const CHORD_PATHS: Record<string, string> = {
   p: "/pulse",
   m: "/map",
   s: "/search",
+  c: "/campaigns",
   ",": "/settings",
 };
 

@@ -630,6 +630,9 @@ export function purgeOwner(ownerId: string): void {
       // account's jobs name it, and both keys restrict.
       "events",
       "jobs",
+      "outreach_recipients",
+      "outreach_campaigns",
+      "sender_profiles",
     ]) {
       sqlite.prepare(`DELETE FROM ${table} WHERE ownerId = ?`).run(ownerId);
     }
