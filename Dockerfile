@@ -29,7 +29,12 @@ RUN node scripts/fetch-models.ts /app/models
 # inside their tarballs, and node:26-trixie-slim has no Python for node-gyp.
 COPY package.json package-lock.json ./
 ENV NODE_ENV=development
-RUN npm ci --include=dev --ignore-scripts && rm -rf /root/.npm
+RUN npm ci --include=dev --include=optional --ignore-scripts \
+    && arch="$(node -p process.arch)" \
+    && npm i --no-save "lightningcss-linux-${arch}-gnu" "@rolldown/binding-linux-${arch}-gnu" 2>/dev/null || true \
+    && cp -f node_modules/lightningcss-linux-*-gnu/*.node node_modules/lightningcss/ 2>/dev/null || true \
+    && find node_modules -type d -name "lightningcss" -exec cp -f node_modules/lightningcss-linux-*-gnu/*.node {}/ \; 2>/dev/null || true \
+    && rm -rf /root/.npm
 
 # Copy frontend build inputs and build
 COPY index.html vite.config.ts tsconfig.json ./
